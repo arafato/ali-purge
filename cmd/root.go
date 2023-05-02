@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"log"
+	"os"
 	"time"
 
+	"github.com/aliyun/alibaba-cloud-sdk-go/services/sts"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -54,9 +56,15 @@ func NewRootCommand() *cobra.Command {
 
 	command.RunE = func(cmd *cobra.Command, args []string) error {
 		// TODO: Initialize Alicloud credentials
+		client, err := sts.NewClientWithAccessKey(os.Getenv("ALIBABACLOUD_REGION_ID"), os.Getenv("ALIBABACLOUD_ACCESS_KEY_ID"), os.Getenv("ALIBABACLOUD_ACCESS_KEY_SECRET"))
+		if err != nil {
+			logger.Info("Credentials are not configured via environment variables, aborting.")
+		}
+
 		// TODO: Read configuration file
 		// TODO: Start purging
-		return nil
+		p := NewPurge(client)
+		return p.Run()
 	}
 
 	command.PersistentFlags().BoolVarP(
